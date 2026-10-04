@@ -49,6 +49,26 @@ jobs:
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle 2>/dev/null || true
 
       - run: flutter pub get
+
+      # رفع مشکل namespace در کتابخانه vosk_flutter (قدیمی است)
+      - name: Patch vosk_flutter
+        run: |
+          python3 - <<'PY'
+          import glob, os, re
+          d = glob.glob(os.path.expanduser('~/.pub-cache/hosted/pub.dev/vosk_flutter-*/android'))[0]
+          mp = d + '/src/main/AndroidManifest.xml'
+          m = open(mp).read()
+          found = re.search(r'package="([^"]*)"', m)
+          pkg = found.group(1) if found else 'com.vosk.vosk_flutter'
+          open(mp, 'w').write(re.sub(r'\s+package="[^"]*"', '', m, count=1))
+          gp = d + '/build.gradle'
+          g = open(gp).read()
+          if 'namespace' not in g:
+              g = re.sub(r'android\s*\{', 'android {\n    namespace "%s"' % pkg, g, count=1)
+          g = re.sub(r'compileSdkVersion\s+\d+', 'compileSdkVersion 34', g)
+          open(gp, 'w').write(g)
+          print('patched', pkg)
+          PY
       - run: flutter build apk --release
 
       - name: Publish APK to Releases
