@@ -1,1 +1,59 @@
+name: Build APK
 
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # اگر project.zip آپلود شده باشد، بازش می‌کند و فایل‌ها را در ریپو می‌گذارد
+      - name: Unpack project.zip
+        run: |
+          if [ -f project.zip ]; then
+            unzip -o project.zip
+            rm project.zip
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
+            git add -A
+            git commit -m "Add project files" || true
+            git push
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare Android project
+        run: |
+          flutter create --platforms=android --project-name book_summary_app --org com.example _tmp
+          cp -r _tmp/android ./android
+          rm -rf _tmp
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i '0,/<application/s##<uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <application#' $M
+          sed -i 's/android:label="[^"]*"/android:label="خلاصه‌یار کتاب"/' $M
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 24/' android/app/build.gradle.kts 2>/dev/null || true
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle 2>/dev/null || true
+
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - name: Publish APK to Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: نسخه ${{ github.run_number }}
+          files: build/app/outputs/flutter-apk/app-release.apk
