@@ -30,3 +30,4 @@ flutter:
 # vosk_flutter قدیمی است و http 0.13 می‌خواهد؛ با نسخه جدید هم کار می‌کند
 dependency_overrides:
   http: ^1.2.2
+  permission_handler: ^11.3.1
