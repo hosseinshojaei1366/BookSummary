@@ -1,0 +1,28 @@
+name: book_summary_app
+description: خلاصه‌یار کتاب - ضبط صوتی خلاصه کتاب و تبدیل به متن فارسی
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite: ^2.3.3
+  path_provider: ^2.1.4
+  path: ^1.9.0
+  record: ^5.1.2
+  just_audio: ^0.9.40
+  shamsi_date: ^1.1.1
+  image_picker: ^1.1.2
+  file_picker: ^8.1.2
+  share_plus: ^10.0.2
+  archive: ^3.6.1
+  vosk_flutter: ^0.3.48
+  google_fonts: ^6.2.1
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
+
+flutter:
+  uses-material-design: true
